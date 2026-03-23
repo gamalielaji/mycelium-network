@@ -1,0 +1,39 @@
+# Anchor / Solana
+target/
+.anchor/
+test-ledger/
+
+# Node
+node_modules/
+dist/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+
+# Build artifacts
+*.so
+deploy/
+
+# Confidential docs (keep in private repo only)
+# mycelium-litepaper-v2.docx
+# mycelium-pitch-v2.docx
+# mycelium-poc-spec-v2.docx
+
+# Legacy flat files (now in workspace structure)
+mycelium_spore_Cargo.toml
+mycelium_spore_lib.rs
+mycelium_spore_tests.ts
+
+# Claude
+CLAUDE.md
