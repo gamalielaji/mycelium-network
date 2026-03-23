@@ -1,0 +1,82 @@
+{
+  "$schema": "https://a2a-protocol.org/schemas/agent-card/v1",
+  "name": "Mycelium IP Registry",
+  "description": "Global intellectual property registry with programmable licensing and court-ready enforcement. Register IP for <$0.01, license programmatically, detect infringement via AI similarity oracle, generate jurisdiction-specific evidence packages. Built on Solana with Proof of History timestamps.",
+  "url": "https://agent.mycelium.network/a2a",
+  "version": "0.1.0",
+  "provider": {
+    "organization": "Mycelium Protocol",
+    "url": "https://mycelium.network"
+  },
+  "capabilities": {
+    "streaming": true,
+    "pushNotifications": true,
+    "stateTransitionHistory": true
+  },
+  "skills": [
+    {
+      "id": "ip-registration",
+      "name": "IP Registration",
+      "description": "Register intellectual property with cryptographic proof of existence. Supports 11 IP types: literary works, visual art, music, software, character IP, memes, video, AI-generated content, traditional knowledge, datasets, brand marks. Returns Solana PoH timestamp + Arweave permanent storage link.",
+      "inputModes": ["application/json"],
+      "outputModes": ["application/json"]
+    },
+    {
+      "id": "license-management",
+      "name": "License Management",
+      "description": "Create and acquire IP licenses. 6 composable license types: open_spore (free+attribution), selective_hypha (free non-commercial, paid commercial), exclusive_root (single licensee), community_canopy (DAO-governed), ai_training (AI model training terms), derivative_bloom (auto royalties upstream). All payments in USDC.",
+      "inputModes": ["application/json"],
+      "outputModes": ["application/json"]
+    },
+    {
+      "id": "similarity-check",
+      "name": "IP Similarity Check",
+      "description": "Check content against the Mycelium registry for potential infringement. Dual-layer detection: Layer 1 (perceptual hashing — pHash, Chromaprint, SimHash) for exact/near-duplicate, Layer 2 (CLIP, CLAP, multilingual-e5 embeddings) for derivatives, style transfers, translations.",
+      "inputModes": ["application/json"],
+      "outputModes": ["application/json"]
+    },
+    {
+      "id": "provenance-verification",
+      "name": "Provenance Verification",
+      "description": "Full chain of custody for any IP asset — creation record, parent works, derivatives, license history, disputes. Every element independently verifiable via Solana Explorer. C2PA-compatible provenance for AI-generated content.",
+      "inputModes": ["application/json"],
+      "outputModes": ["application/json"]
+    },
+    {
+      "id": "evidence-generation",
+      "name": "Court Evidence Generation",
+      "description": "Generate court-ready evidence packages formatted for specific jurisdictions. Supported: Indonesia (UU ITE), Kenya (Evidence Act), Colombia (Ley 527), China (Internet Court), US (Federal Rules of Evidence), UK (Practice Direction 31B), EU (eIDAS), South Africa. Includes W3C PROV provenance chain, expert witness declaration template, verification guide.",
+      "inputModes": ["application/json"],
+      "outputModes": ["application/json", "application/pdf"]
+    },
+    {
+      "id": "dispute-resolution",
+      "name": "IP Dispute Resolution",
+      "description": "File and manage IP disputes through a 5-stage escalation protocol: automated detection ($0), direct resolution ($0), community mediation ($50 USDC), arbitration panel ($200-500 USDC), cross-jurisdictional enforcement (court filing).",
+      "inputModes": ["application/json"],
+      "outputModes": ["application/json"]
+    }
+  ],
+  "authentication": {
+    "schemes": ["oauth2", "apiKey"],
+    "credentials": {
+      "oauth2": {
+        "authorizationUrl": "https://auth.mycelium.network/oauth2/authorize",
+        "tokenUrl": "https://auth.mycelium.network/oauth2/token",
+        "scopes": {
+          "ip:read": "Read IP assets, licenses, and provenance",
+          "ip:write": "Register IP and create licenses",
+          "ip:license": "Acquire licenses (requires USDC balance)",
+          "ip:dispute": "File and manage disputes",
+          "ip:evidence": "Generate evidence packages"
+        }
+      },
+      "apiKey": {
+        "headerName": "X-Mycelium-API-Key",
+        "description": "API key from https://dashboard.mycelium.network/api-keys"
+      }
+    }
+  },
+  "defaultInputModes": ["application/json"],
+  "defaultOutputModes": ["application/json"]
+}

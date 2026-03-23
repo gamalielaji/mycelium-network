@@ -1,0 +1,113 @@
+{
+  "$schema": "https://ucp.dev/schemas/manifest/v1",
+  "business_profile": {
+    "name": "Mycelium Protocol",
+    "description": "Global IP registry with programmable licensing. Register, license, and enforce intellectual property rights on Solana.",
+    "type": "digital_marketplace",
+    "url": "https://mycelium.network",
+    "supported_currencies": ["USDC", "USD"],
+    "fulfillment_type": "instant_digital",
+    "categories": [
+      "intellectual_property",
+      "digital_licensing",
+      "content_rights"
+    ]
+  },
+  "capabilities": {
+    "discovery": {
+      "search_catalog": {
+        "endpoint": "/api/ucp/discovery/search",
+        "method": "POST",
+        "description": "Search available IP assets with licensing options. Filter by type, creator, territory, price range.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "query": { "type": "string", "description": "Free-text search" },
+            "ip_type": { "type": "string", "enum": ["literary_work","visual_art","music","software","character_ip","meme","video","ai_generated","traditional_knowledge","dataset","brand_mark"] },
+            "license_type": { "type": "string", "enum": ["open_spore","selective_hypha","exclusive_root","community_canopy","ai_training","derivative_bloom"] },
+            "max_price_usdc": { "type": "number" },
+            "territory": { "type": "string", "description": "ISO 3166-1 code" },
+            "page": { "type": "integer" },
+            "page_size": { "type": "integer" }
+          }
+        }
+      },
+      "get_product": {
+        "endpoint": "/api/ucp/discovery/ip/{pubkey}",
+        "method": "GET",
+        "description": "Get full details of an IP asset including all available license options, provenance chain, and pricing."
+      }
+    },
+    "cart": {
+      "create_cart": {
+        "endpoint": "/api/ucp/cart/create",
+        "method": "POST",
+        "description": "Create a cart for license acquisitions. Supports multiple licenses in a single transaction."
+      },
+      "add_item": {
+        "endpoint": "/api/ucp/cart/add",
+        "method": "POST",
+        "description": "Add a license template to the cart.",
+        "input_schema": {
+          "type": "object",
+          "required": ["license_template_pubkey"],
+          "properties": {
+            "license_template_pubkey": { "type": "string" },
+            "quantity": { "type": "integer", "default": 1 }
+          }
+        }
+      }
+    },
+    "checkout": {
+      "create_checkout": {
+        "endpoint": "/api/ucp/checkout/create",
+        "method": "POST",
+        "description": "Create a checkout session. Returns total cost in USDC and payment options."
+      },
+      "confirm": {
+        "endpoint": "/api/ucp/checkout/confirm",
+        "method": "POST",
+        "description": "Confirm checkout and execute license acquisition. Submits Solana transactions atomically — USDC payment + royalty splits + license token minting in a single block."
+      }
+    },
+    "identity": {
+      "link_identity": {
+        "endpoint": "/api/ucp/identity/link",
+        "method": "POST",
+        "description": "Link agent identity (OAuth, DID, API key) to a custodial Solana wallet for transactions."
+      }
+    }
+  },
+  "protocols": {
+    "mcp": {
+      "server_url": "https://mcp.mycelium.network",
+      "transport": "streamable-http",
+      "description": "Full MCP server with 11 tools for IP operations"
+    },
+    "a2a": {
+      "agent_card_url": "https://agent.mycelium.network/.well-known/agent-card.json",
+      "description": "A2A agent supporting task delegation for IP registration, licensing, and dispute resolution"
+    },
+    "ap2": {
+      "supported": true,
+      "payment_methods": ["usdc_solana", "stripe_fiat"],
+      "description": "Agent Payment Protocol for secure license acquisitions"
+    }
+  },
+  "pricing": {
+    "currency": "USDC",
+    "fee_schedule": {
+      "ip_registration": { "amount": 0.004, "unit": "SOL", "description": "Solana PDA rent for IP asset account" },
+      "license_creation": { "amount": 0.05, "unit": "USDC", "description": "One-time fee to create a license template" },
+      "license_acquisition": { "amount": "variable", "description": "Set by IP owner per license template" },
+      "evidence_package": { "amount_range": [5, 25], "unit": "USDC", "description": "Court-ready evidence generation" },
+      "dispute_mediation": { "amount": 50, "unit": "USDC", "description": "Stage 3 community mediation" },
+      "dispute_arbitration": { "amount_range": [200, 500], "unit": "USDC", "description": "Stage 4 binding arbitration" }
+    },
+    "global_south_discount": {
+      "eligible": "UN LDC classification",
+      "ip_registration": "FREE",
+      "dispute_mediation": "50% reduced"
+    }
+  }
+}
