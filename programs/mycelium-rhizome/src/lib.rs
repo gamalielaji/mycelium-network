@@ -47,9 +47,12 @@ pub mod mycelium_rhizome {
             RhizomeError::SplitsMustSum10000
         );
 
+        let config_key = ctx.accounts.royalty_config.key();
+        let ip_asset_key = ctx.accounts.ip_asset.key();
+        let creator_key = ctx.accounts.creator.key();
         let config = &mut ctx.accounts.royalty_config;
-        config.ip_asset = ctx.accounts.ip_asset.key();
-        config.creator = ctx.accounts.creator.key();
+        config.ip_asset = ip_asset_key;
+        config.creator = creator_key;
         config.platform_fee_bps = platform_fee_bps;
         config.total_deposited = 0;
         config.total_distributed = 0;
@@ -63,11 +66,13 @@ pub mod mycelium_rhizome {
             config.recipients[i] = *r;
         }
 
+        let recipient_count_val = config.recipient_count;
+
         emit!(RoyaltyConfigured {
-            config_key: ctx.accounts.royalty_config.key(),
-            ip_asset: config.ip_asset,
-            creator: config.creator,
-            recipient_count: config.recipient_count,
+            config_key,
+            ip_asset: ip_asset_key,
+            creator: creator_key,
+            recipient_count: recipient_count_val,
             platform_fee_bps,
         });
 
@@ -98,17 +103,22 @@ pub mod mycelium_rhizome {
         )?;
 
         // Update config
+        let config_key = ctx.accounts.royalty_config.key();
+        let depositor_key = ctx.accounts.depositor.key();
         let config = &mut ctx.accounts.royalty_config;
         config.total_deposited = config.total_deposited
             .checked_add(amount_lamports)
             .ok_or(RhizomeError::Overflow)?;
 
+        let ip_asset_val = config.ip_asset;
+        let total_deposited_val = config.total_deposited;
+
         emit!(RoyaltyDeposited {
-            config_key: ctx.accounts.royalty_config.key(),
-            ip_asset: config.ip_asset,
-            depositor: ctx.accounts.depositor.key(),
+            config_key,
+            ip_asset: ip_asset_val,
+            depositor: depositor_key,
             amount_lamports,
-            total_deposited: config.total_deposited,
+            total_deposited: total_deposited_val,
         });
 
         Ok(())
@@ -154,6 +164,7 @@ pub mod mycelium_rhizome {
         **ctx.accounts.royalty_vault.to_account_info().try_borrow_mut_lamports()? -= total_sent;
         **ctx.accounts.distribution_pool.to_account_info().try_borrow_mut_lamports()? += total_sent;
 
+        let config_key = ctx.accounts.royalty_config.key();
         let config = &mut ctx.accounts.royalty_config;
         config.total_distributed = config.total_distributed
             .checked_add(distributable)
@@ -162,13 +173,16 @@ pub mod mycelium_rhizome {
             .checked_add(1)
             .ok_or(RhizomeError::Overflow)?;
 
+        let ip_asset_val = config.ip_asset;
+        let distribution_count_val = config.distribution_count;
+
         emit!(RoyaltiesDistributed {
-            config_key: ctx.accounts.royalty_config.key(),
-            ip_asset: config.ip_asset,
+            config_key,
+            ip_asset: ip_asset_val,
             total_distributed: distributable,
             platform_fee,
             recipient_amount: distributable_after_fee,
-            distribution_number: config.distribution_count,
+            distribution_number: distribution_count_val,
         });
 
         Ok(())

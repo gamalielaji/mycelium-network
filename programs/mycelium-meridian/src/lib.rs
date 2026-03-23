@@ -55,10 +55,13 @@ pub mod mycelium_meridian {
         );
 
         let clock = Clock::get()?;
+        let evidence_key = ctx.accounts.evidence_package.key();
+        let ip_asset_key = ctx.accounts.ip_asset.key();
+        let requester_key = ctx.accounts.requester.key();
         let evidence = &mut ctx.accounts.evidence_package;
 
-        evidence.ip_asset = ctx.accounts.ip_asset.key();
-        evidence.requested_by = ctx.accounts.requester.key();
+        evidence.ip_asset = ip_asset_key;
+        evidence.requested_by = requester_key;
         evidence.generated_at = clock.unix_timestamp;
         evidence.generated_slot = clock.slot;
         evidence.package_hash = package_hash;
@@ -73,15 +76,18 @@ pub mod mycelium_meridian {
         evidence.superseded_by = None;
         evidence.bump = ctx.bumps.evidence_package;
 
+        let generated_at_val = evidence.generated_at;
+        let generated_slot_val = evidence.generated_slot;
+
         emit!(MEPGenerated {
-            evidence_key: ctx.accounts.evidence_package.key(),
-            ip_asset: evidence.ip_asset,
-            requested_by: evidence.requested_by,
+            evidence_key,
+            ip_asset: ip_asset_key,
+            requested_by: requester_key,
             package_hash,
             arweave_uri,
             jurisdiction,
-            generated_at: evidence.generated_at,
-            generated_slot: evidence.generated_slot,
+            generated_at: generated_at_val,
+            generated_slot: generated_slot_val,
         });
 
         Ok(())
@@ -96,6 +102,8 @@ pub mod mycelium_meridian {
         ctx: Context<VerifyMEP>,
         claimed_hash: [u8; 32],
     ) -> Result<()> {
+        let evidence_key = ctx.accounts.evidence_package.key();
+        let verifier_key = ctx.accounts.verifier.key();
         let evidence = &mut ctx.accounts.evidence_package;
 
         let is_valid = evidence.package_hash == claimed_hash;
@@ -104,13 +112,16 @@ pub mod mycelium_meridian {
             .checked_add(1)
             .ok_or(MeridianError::Overflow)?;
 
+        let ip_asset_val = evidence.ip_asset;
+        let verification_count_val = evidence.verification_count;
+
         emit!(MEPVerified {
-            evidence_key: ctx.accounts.evidence_package.key(),
-            ip_asset: evidence.ip_asset,
-            verifier: ctx.accounts.verifier.key(),
+            evidence_key,
+            ip_asset: ip_asset_val,
+            verifier: verifier_key,
             claimed_hash,
             is_valid,
-            verification_number: evidence.verification_count,
+            verification_number: verification_count_val,
         });
 
         Ok(())
@@ -136,6 +147,7 @@ pub mod mycelium_meridian {
         );
 
         let clock = Clock::get()?;
+        let evidence_key = ctx.accounts.evidence_package.key();
         let evidence = &mut ctx.accounts.evidence_package;
 
         // Update with new data
@@ -150,13 +162,16 @@ pub mod mycelium_meridian {
         evidence.version = evidence.version.checked_add(1)
             .ok_or(MeridianError::Overflow)?;
 
+        let ip_asset_val = evidence.ip_asset;
+        let version_val = evidence.version;
+
         emit!(MEPUpdated {
-            evidence_key: ctx.accounts.evidence_package.key(),
-            ip_asset: evidence.ip_asset,
+            evidence_key,
+            ip_asset: ip_asset_val,
             old_hash,
             new_hash: new_package_hash,
             new_arweave_uri,
-            version: evidence.version,
+            version: version_val,
         });
 
         Ok(())

@@ -60,6 +60,7 @@ pub mod mycelium_spore {
         );
 
         let clock = Clock::get()?;
+        let ip_asset_key = ctx.accounts.ip_asset.key();
         let ip_asset = &mut ctx.accounts.ip_asset;
 
         ip_asset.creator = ctx.accounts.creator.key();
@@ -81,15 +82,19 @@ pub mod mycelium_spore {
         ip_asset.wipo_aligned = nice_class.is_some() || berne_category.is_some();
         ip_asset.bump = ctx.bumps.ip_asset;
 
+        let creator_val = ip_asset.creator;
+        let slot_val = ip_asset.registration_slot;
+        let timestamp_val = ip_asset.registration_timestamp;
+
         emit!(IPRegistered {
-            creator: ip_asset.creator,
-            ip_asset_key: ctx.accounts.ip_asset.key(),
+            creator: creator_val,
+            ip_asset_key,
             content_hash,
             perceptual_hash,
             ip_type,
             metadata_uri,
-            slot: ip_asset.registration_slot,
-            timestamp: ip_asset.registration_timestamp,
+            slot: slot_val,
+            timestamp: timestamp_val,
         });
 
         Ok(())
@@ -120,6 +125,9 @@ pub mod mycelium_spore {
         );
 
         let clock = Clock::get()?;
+        let ip_asset_key = ctx.accounts.ip_asset.key();
+        let parent_ip_key = ctx.accounts.parent_ip_asset.key();
+        let parent_creator = parent.creator;
         let ip_asset = &mut ctx.accounts.ip_asset;
 
         ip_asset.creator = ctx.accounts.creator.key();
@@ -129,7 +137,7 @@ pub mod mycelium_spore {
         ip_asset.metadata_uri = metadata_uri.clone();
         ip_asset.registration_slot = clock.slot;
         ip_asset.registration_timestamp = clock.unix_timestamp;
-        ip_asset.parent_ip = Some(ctx.accounts.parent_ip_asset.key());
+        ip_asset.parent_ip = Some(parent_ip_key);
         ip_asset.status = IPStatus::Active;
         ip_asset.license_count = 0;
         ip_asset.dispute_count = 0;
@@ -141,15 +149,19 @@ pub mod mycelium_spore {
         ip_asset.wipo_aligned = false;
         ip_asset.bump = ctx.bumps.ip_asset;
 
+        let creator_val = ip_asset.creator;
+        let slot_val = ip_asset.registration_slot;
+        let timestamp_val = ip_asset.registration_timestamp;
+
         emit!(DerivativeRegistered {
-            creator: ip_asset.creator,
-            ip_asset_key: ctx.accounts.ip_asset.key(),
-            parent_ip_key: ctx.accounts.parent_ip_asset.key(),
-            parent_creator: parent.creator,
+            creator: creator_val,
+            ip_asset_key,
+            parent_ip_key,
+            parent_creator,
             content_hash,
             ip_type,
-            slot: ip_asset.registration_slot,
-            timestamp: ip_asset.registration_timestamp,
+            slot: slot_val,
+            timestamp: timestamp_val,
         });
 
         Ok(())
@@ -170,6 +182,7 @@ pub mod mycelium_spore {
             MyceliumError::MetadataUriEmpty
         );
 
+        let ip_asset_key = ctx.accounts.ip_asset.key();
         let ip_asset = &mut ctx.accounts.ip_asset;
         require!(
             ip_asset.creator == ctx.accounts.creator.key(),
@@ -181,12 +194,15 @@ pub mod mycelium_spore {
         ip_asset.version = ip_asset.version.checked_add(1)
             .ok_or(MyceliumError::Overflow)?;
 
+        let creator_val = ip_asset.creator;
+        let version_val = ip_asset.version;
+
         emit!(MetadataUpdated {
-            ip_asset_key: ctx.accounts.ip_asset.key(),
-            creator: ip_asset.creator,
+            ip_asset_key,
+            creator: creator_val,
             old_metadata_uri: old_uri,
             new_metadata_uri,
-            version: ip_asset.version,
+            version: version_val,
         });
 
         Ok(())
@@ -194,6 +210,8 @@ pub mod mycelium_spore {
 
     /// Transfer ownership of an IP asset. Both parties must sign.
     pub fn transfer_ownership(ctx: Context<TransferOwnership>) -> Result<()> {
+        let ip_asset_key = ctx.accounts.ip_asset.key();
+        let new_owner_key = ctx.accounts.new_owner.key();
         let ip_asset = &mut ctx.accounts.ip_asset;
         require!(
             ip_asset.status == IPStatus::Active,
@@ -201,13 +219,15 @@ pub mod mycelium_spore {
         );
 
         let old_creator = ip_asset.creator;
-        ip_asset.creator = ctx.accounts.new_owner.key();
+        ip_asset.creator = new_owner_key;
+
+        let content_hash_val = ip_asset.content_hash;
 
         emit!(OwnershipTransferred {
-            ip_asset_key: ctx.accounts.ip_asset.key(),
+            ip_asset_key,
             from: old_creator,
-            to: ctx.accounts.new_owner.key(),
-            content_hash: ip_asset.content_hash,
+            to: new_owner_key,
+            content_hash: content_hash_val,
         });
 
         Ok(())
@@ -215,6 +235,7 @@ pub mod mycelium_spore {
 
     /// Flag an IP asset's status (used by DRP program via CPI).
     pub fn update_status(ctx: Context<UpdateStatus>, new_status: IPStatus) -> Result<()> {
+        let ip_asset_key = ctx.accounts.ip_asset.key();
         let ip_asset = &mut ctx.accounts.ip_asset;
         let old_status = ip_asset.status.clone();
 
@@ -235,7 +256,7 @@ pub mod mycelium_spore {
         }
 
         emit!(StatusUpdated {
-            ip_asset_key: ctx.accounts.ip_asset.key(),
+            ip_asset_key,
             old_status,
             new_status,
         });

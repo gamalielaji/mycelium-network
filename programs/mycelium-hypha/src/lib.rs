@@ -39,10 +39,13 @@ pub mod mycelium_hypha {
         );
 
         let clock = Clock::get()?;
-        let template = &mut ctx.accounts.license_template;
+        let template_key = ctx.accounts.license_template.key();
+        let ip_asset_key = ctx.accounts.ip_asset.key();
+        let licensor_key = ctx.accounts.licensor.key();
 
-        template.ip_asset = ctx.accounts.ip_asset.key();
-        template.licensor = ctx.accounts.licensor.key();
+        let template = &mut ctx.accounts.license_template;
+        template.ip_asset = ip_asset_key;
+        template.licensor = licensor_key;
         template.license_type = license_type.clone();
         template.royalty_rate_bps = royalty_rate_bps;
         template.max_sublicenses = max_sublicenses;
@@ -57,9 +60,9 @@ pub mod mycelium_hypha {
         template.bump = ctx.bumps.license_template;
 
         emit!(LicenseTemplateCreated {
-            template_key: ctx.accounts.license_template.key(),
-            ip_asset: template.ip_asset,
-            licensor: template.licensor,
+            template_key,
+            ip_asset: ip_asset_key,
+            licensor: licensor_key,
             license_type,
             royalty_rate_bps,
             commercial_use,
@@ -85,48 +88,62 @@ pub mod mycelium_hypha {
             HyphaError::PurposeTooLong
         );
 
+        // Capture keys before mutable borrows
+        let license_key = ctx.accounts.license.key();
+        let template_key = ctx.accounts.license_template.key();
+
         let template = &mut ctx.accounts.license_template;
         require!(template.is_active, HyphaError::TemplateNotActive);
 
         let clock = Clock::get()?;
-        let license = &mut ctx.accounts.license;
 
         let expires_at = template.duration_seconds
             .map(|d| clock.unix_timestamp.checked_add(d))
             .flatten();
 
-        license.template = ctx.accounts.license_template.key();
-        license.ip_asset = template.ip_asset;
-        license.licensor = template.licensor;
-        license.licensee = ctx.accounts.licensee.key();
-        license.licensee_name = licensee_name;
-        license.purpose = purpose;
-        license.license_type = template.license_type.clone();
-        license.royalty_rate_bps = template.royalty_rate_bps;
-        license.commercial_use = template.commercial_use;
-        license.ai_training_allowed = template.ai_training_allowed;
-        license.territory = template.territory.clone();
-        license.issued_at = clock.unix_timestamp;
-        license.expires_at = expires_at;
-        license.status = LicenseStatus::Active;
-        license.sublicense_count = 0;
-        license.max_sublicenses = template.max_sublicenses;
-        license.total_royalties_paid = 0;
-        license.bump = ctx.bumps.license;
+        // Cache template values before mutating
+        let ip_asset = template.ip_asset;
+        let licensor = template.licensor;
+        let license_type = template.license_type.clone();
+        let royalty_rate_bps = template.royalty_rate_bps;
+        let commercial_use = template.commercial_use;
+        let ai_training_allowed = template.ai_training_allowed;
+        let territory = template.territory.clone();
+        let max_sublicenses = template.max_sublicenses;
 
         template.active_licenses = template.active_licenses.checked_add(1)
             .ok_or(HyphaError::Overflow)?;
         template.total_issued = template.total_issued.checked_add(1)
             .ok_or(HyphaError::Overflow)?;
 
+        let license = &mut ctx.accounts.license;
+        license.template = template_key;
+        license.ip_asset = ip_asset;
+        license.licensor = licensor;
+        license.licensee = ctx.accounts.licensee.key();
+        license.licensee_name = licensee_name;
+        license.purpose = purpose;
+        license.license_type = license_type.clone();
+        license.royalty_rate_bps = royalty_rate_bps;
+        license.commercial_use = commercial_use;
+        license.ai_training_allowed = ai_training_allowed;
+        license.territory = territory;
+        license.issued_at = clock.unix_timestamp;
+        license.expires_at = expires_at;
+        license.status = LicenseStatus::Active;
+        license.sublicense_count = 0;
+        license.max_sublicenses = max_sublicenses;
+        license.total_royalties_paid = 0;
+        license.bump = ctx.bumps.license;
+
         emit!(LicenseIssued {
-            license_key: ctx.accounts.license.key(),
-            template_key: ctx.accounts.license_template.key(),
-            ip_asset: license.ip_asset,
-            licensor: license.licensor,
+            license_key,
+            template_key,
+            ip_asset,
+            licensor,
             licensee: license.licensee,
-            license_type: license.license_type.clone(),
-            royalty_rate_bps: license.royalty_rate_bps,
+            license_type,
+            royalty_rate_bps,
             issued_at: license.issued_at,
             expires_at: license.expires_at,
         });
@@ -136,6 +153,8 @@ pub mod mycelium_hypha {
 
     /// Revoke a license. Only the licensor can revoke.
     pub fn revoke_license(ctx: Context<RevokeLicense>) -> Result<()> {
+        let license_key = ctx.accounts.license.key();
+
         let license = &mut ctx.accounts.license;
         require!(
             license.status == LicenseStatus::Active,
@@ -143,15 +162,18 @@ pub mod mycelium_hypha {
         );
 
         license.status = LicenseStatus::Revoked;
+        let ip_asset = license.ip_asset;
+        let licensor = license.licensor;
+        let licensee = license.licensee;
 
         let template = &mut ctx.accounts.license_template;
         template.active_licenses = template.active_licenses.saturating_sub(1);
 
         emit!(LicenseRevoked {
-            license_key: ctx.accounts.license.key(),
-            ip_asset: license.ip_asset,
-            licensor: license.licensor,
-            licensee: license.licensee,
+            license_key,
+            ip_asset,
+            licensor,
+            licensee,
         });
 
         Ok(())
@@ -159,12 +181,15 @@ pub mod mycelium_hypha {
 
     /// Deactivate a license template. No new licenses can be issued.
     pub fn deactivate_template(ctx: Context<DeactivateTemplate>) -> Result<()> {
+        let template_key = ctx.accounts.license_template.key();
+
         let template = &mut ctx.accounts.license_template;
         template.is_active = false;
+        let ip_asset = template.ip_asset;
 
         emit!(TemplateDeactivated {
-            template_key: ctx.accounts.license_template.key(),
-            ip_asset: template.ip_asset,
+            template_key,
+            ip_asset,
         });
 
         Ok(())
