@@ -8,14 +8,14 @@ skip-lint = false
 mycelium_hypha = "9tB3hfhMfHxr6cPjikpPn8y9zVvXLFzEX7NDHAWYodj5"
 mycelium_meridian = "7LrekmiYZDKPBsaSBVaXUVG9iXtB164XQ5ntRVeiMnfc"
 mycelium_rhizome = "9HRqJ3toCnSBB3JQiMdCmoLg6qW5a6PdpwdHypRVBLNu"
-mycelium_spore = "7UkHLH3qUNxAn9ixVvDckUnqVmNJazppXcDGZ57JtXe"
+mycelium_spore = "AZGNVbxsnUmCi9CoEDrosJXnTK6xmujbutJsLTqXQyPz"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
 cluster = "devnet"
-wallet = "~/.config/solana/id.json"
+wallet = "~/solana-keys/id.json"
 
 [scripts]
 test = "npx ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"

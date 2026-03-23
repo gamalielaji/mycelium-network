@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import "@solana/wallet-adapter-react-ui/styles.css";
+
+:root {
+  --foreground: #e2e8f0;
+  --background: #0a0a0f;
+  --card: #111118;
+  --card-border: #1e1e2e;
+  --accent: #22c55e;
+  --accent-dim: #16a34a;
+  --muted: #64748b;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Wallet adapter button overrides */
+.wallet-adapter-button {
+  background-color: var(--accent) !important;
+  border-radius: 8px !important;
+  font-size: 14px !important;
+  height: 40px !important;
+}
+
+.wallet-adapter-button:hover {
+  background-color: var(--accent-dim) !important;
+}
+
+.wallet-adapter-modal-wrapper {
+  background-color: var(--card) !important;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 3px;
+}
+
+/* Glow effect for cards */
+.glow-green {
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.1);
+}

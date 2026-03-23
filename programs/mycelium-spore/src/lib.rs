@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-declare_id!("7UkHLH3qUNxAn9ixVvDckUnqVmNJazppXcDGZ57JtXe");
+declare_id!("AZGNVbxsnUmCi9CoEDrosJXnTK6xmujbutJsLTqXQyPz");
 
 /// Mycelium Protocol — Spore Program
 /// IP Registration & Proof of Existence on Solana
